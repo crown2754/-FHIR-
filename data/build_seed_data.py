@@ -96,7 +96,7 @@ def generate_records():
                 {
                     "id": deterministic_uuid(rand),
                     "patient_id": "A12****789",
-                    "patient_name": "Gary",
+                    "patient_name": "衛斯理 先生",
                     "recorded_at": iso_time,
                     "slot": "早上",
                     "period": period,
@@ -124,7 +124,7 @@ def generate_records():
                 {
                     "id": deterministic_uuid(rand),
                     "patient_id": "A12****789",
-                    "patient_name": "Gary",
+                    "patient_name": "衛斯理 先生",
                     "recorded_at": iso_time,
                     "slot": slot,
                     "period": period,

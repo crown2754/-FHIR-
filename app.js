@@ -43,7 +43,7 @@ const ICD = {
   'E11.65': 'Type 2 diabetes mellitus with hyperglycemia',
   'Z79.84': 'Long term (current) use of oral hypoglycemic drugs',
 };
-const PATIENT = { name: 'Gary', gender: 'male', birthDate: '1988-03-14', id: 'A12****789' };
+const PATIENT = { name: '衛斯理 先生', gender: 'male', birthDate: '1988-03-14', id: 'A12****789' };
 const DOCTOR = { name: '原振俠 醫師', dept: '新陳代謝科', org: '中原智慧醫院' };
 
 function interp(r) {
@@ -718,7 +718,7 @@ createApp({
       doctor.replied = true;
       push({
         from: 'doctor', type: 'text',
-        text: `Gary 你好，我是${DOCTOR.name}。已看過你最近 ${s.n} 筆血糖：空腹平均 ${s.fAvg}、餐後平均 ${s.pAvg} mg/dL，餐後超過 180 有 ${s.pHigh} 次。` +
+        text: `${PATIENT.name}你好，我是${DOCTOR.name}。已看過你最近 ${s.n} 筆血糖：空腹平均 ${s.fAvg}、餐後平均 ${s.pAvg} mg/dL，餐後超過 180 有 ${s.pHigh} 次。` +
           `\n\n下次回診我們一起討論飲食與藥物調整，這段時間請多記錄「餐後 2 小時」血糖，謝謝你的配合！`,
       });
       setTimeout(() => goPage(1), 1200);
@@ -770,7 +770,7 @@ createApp({
   <main class="stage" :class="'p' + page">
     <!-- ===== 病人手機 ===== -->
     <section class="col col-phone" v-show="page === 1">
-      <div class="col-title">👤 病人手機 · 專屬 AI Agent</div>
+      <div class="col-title"><img class="title-av" src="patient.jpg" alt="衛斯理 先生" /> 病人手機 · {{ PATIENT.name }} ＆ 專屬 AI Agent</div>
       <div class="phone">
         <div class="phone-status"><span>{{ clock }}</span><span>5G ▮▮▮ 🔋</span></div>
         <div class="chat-head">
@@ -987,7 +987,7 @@ createApp({
         <div v-else class="emr">
           <div class="emr-top">
             <div class="pt">
-              <div class="pt-av">G</div>
+              <img class="pt-av" src="patient.jpg" :alt="PATIENT.name" />
               <div>
                 <div class="pt-name">{{ PATIENT.name }} <small>男 · {{ PATIENT.birthDate }} · {{ PATIENT.id }}</small></div>
                 <div class="pt-sub">主訴：糖尿病回診 · 來源：病人 AI Agent（FHIR R4）</div>
