@@ -181,7 +181,7 @@ function bundlePreview(bundle) {
 
 /* ---------- 傳輸步驟 ---------- */
 const STEP_DEFS = [
-  { key: 'query', icon: '🔎', title: 'AI Agent 擷取紀錄', desc: '從個人健康紀錄 (PHR) 撈出最近的血糖資料' },
+  { key: 'query', icon: '🔎', title: 'AI Agent 查詢 SQLite 資料庫', desc: '從本地 SQLite (glucose.db) 撈出最近的血糖紀錄' },
   { key: 'icd', icon: '🩺', title: '疾病脈絡 → ICD-10-CM', desc: '帶入既有診斷，並依血糖趨勢提出建議碼' },
   { key: 'fhir', icon: '🧩', title: '封裝 FHIR R4 Bundle', desc: 'Patient + Condition + Observation（LOINC / UCUM）' },
   { key: 'auth', icon: '🔐', title: '病人授權與安全通道', desc: 'Consent + SMART on FHIR OAuth 2.0 + TLS 1.3' },
@@ -189,6 +189,13 @@ const STEP_DEFS = [
   { key: 'verify', icon: '✅', title: '伺服器驗證與入庫', desc: '$validate → 200 OK，每筆 entry 201 Created' },
   { key: 'notify', icon: '🔔', title: '通知主治醫師', desc: '推播至醫師的行動裝置' },
 ];
+
+function b64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
 
 /* ---------- App ---------- */
 createApp({
@@ -201,8 +208,199 @@ createApp({
     const typing = ref(false);
     const chatBody = ref(null);
     const logBox = ref(null);
+    const fileInput = ref(null);
     const clock = ref(fmtTime(new Date()));
     setInterval(() => (clock.value = fmtTime(new Date())), 15000);
+
+    /* ----- SQLite (sql.js) 引擎狀態 ----- */
+    let SQL = null;
+    let sqliteDb = null;
+    let initialDbBytes = null;
+    const dbState = reactive({
+      ready: false,
+      source: '載入中…',
+      showModal: false,
+      lastSql: '',
+      sqlQuery: 'SELECT substr(recorded_at, 1, 16) AS 時間, slot AS 時段, period_label AS 狀態, value AS 血糖值, interpretation AS 判讀, loinc_code AS LOINC, note AS 備註 FROM glucose_records ORDER BY recorded_at DESC LIMIT 20;',
+      queryCols: [],
+      queryRows: [],
+      queryError: '',
+    });
+
+    function syncRecordsFromSqlite() {
+      if (!sqliteDb) return;
+      const res = sqliteDb.exec('SELECT id, recorded_at, slot, period, value, source, note FROM glucose_records ORDER BY recorded_at ASC;');
+      if (!res.length) {
+        records.value = [];
+        return;
+      }
+      records.value = res[0].values.map(([id, recorded_at, slot, period, value, source, note]) => ({
+        id,
+        time: new Date(recorded_at),
+        slot: slot || '',
+        period: PERIODS[period] ? period : 'random',
+        value: Number(value),
+        source: source || 'seed',
+        note: note || '',
+      }));
+    }
+
+    function runCustomSql(sqlText) {
+      if (sqlText) dbState.sqlQuery = sqlText;
+      if (!sqliteDb) return;
+      dbState.queryError = '';
+      try {
+        const res = sqliteDb.exec(dbState.sqlQuery);
+        if (res.length) {
+          dbState.queryCols = res[0].columns;
+          dbState.queryRows = res[0].values;
+        } else {
+          dbState.queryCols = ['結果'];
+          dbState.queryRows = [['執行成功（0 筆回傳列）']];
+        }
+        syncRecordsFromSqlite();
+      } catch (err) {
+        dbState.queryError = err.message || String(err);
+      }
+    }
+
+    async function initSqlite(forceReset = false) {
+      try {
+        if (!SQL && window.initSqlJs) {
+          SQL = await window.initSqlJs();
+        }
+        if (!SQL) return;
+        if (!initialDbBytes || forceReset) {
+          try {
+            const resp = await fetch('data/glucose.db');
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            initialDbBytes = new Uint8Array(await resp.arrayBuffer());
+            dbState.source = 'data/glucose.db (SQLite 3)';
+          } catch (_) {
+            if (window.__SEED_SQLITE_B64__) {
+              initialDbBytes = b64ToBytes(window.__SEED_SQLITE_B64__);
+              dbState.source = 'data/glucose.db (內嵌 SQLite 3)';
+            }
+          }
+        }
+        if (initialDbBytes) {
+          if (sqliteDb) sqliteDb.close();
+          sqliteDb = new SQL.Database(new Uint8Array(initialDbBytes));
+          dbState.ready = true;
+          dbState.lastSql = 'SELECT * FROM glucose_records ORDER BY recorded_at DESC;';
+          syncRecordsFromSqlite();
+          runCustomSql();
+        }
+      } catch (e) {
+        console.warn('SQLite init fallback:', e);
+      }
+    }
+    initSqlite();
+
+    function insertRecordToSqlite(rec) {
+      if (!sqliteDb) return '';
+      const p = PERIODS[rec.period];
+      const i = interp(rec);
+      const iso = toISO(rec.time);
+      const s = rec.slot || '其他';
+      const note = '病人透過卡皮君對話新增';
+      sqliteDb.run(
+        `INSERT INTO glucose_records (id, patient_id, patient_name, recorded_at, slot, period, period_label, loinc_code, loinc_display, value, unit, interpretation, source, note)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'mg/dL', ?, 'chat', ?);`,
+        [rec.id, PATIENT.id, PATIENT.name, iso, s, rec.period, p.label, p.loinc, p.display, rec.value, i, note]
+      );
+      const sqlPreview = `INSERT INTO glucose_records (recorded_at, slot, period, loinc_code, value, interpretation) VALUES ('${iso}', '${s}', '${rec.period}', '${p.loinc}', ${rec.value}, '${i}');`;
+      dbState.lastSql = sqlPreview;
+      syncRecordsFromSqlite();
+      runCustomSql();
+      return sqlPreview;
+    }
+
+    function downloadSqliteDb() {
+      if (!sqliteDb) return;
+      const bytes = sqliteDb.export();
+      const blob = new Blob([bytes], { type: 'application/x-sqlite3' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'glucose.db';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function downloadCsv() {
+      const headers = ['id', 'patient_id', 'patient_name', 'recorded_at', 'slot', 'period', 'period_label', 'loinc_code', 'loinc_display', 'value', 'unit', 'interpretation', 'source', 'note'];
+      let rows = [];
+      if (sqliteDb) {
+        const res = sqliteDb.exec(`SELECT ${headers.join(', ')} FROM glucose_records ORDER BY recorded_at ASC;`);
+        if (res.length) rows = res[0].values;
+      } else {
+        rows = sortedRecords.value.map((r) => [
+          r.id, PATIENT.id, PATIENT.name, toISO(r.time), r.slot || '', r.period, PERIODS[r.period].label,
+          PERIODS[r.period].loinc, PERIODS[r.period].display, r.value, 'mg/dL', interp(r), r.source || 'seed', r.note || '',
+        ]);
+      }
+      const esc = (v) => {
+        const s = String(v ?? '');
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.map(esc).join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'glucose_records.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    async function handleFileImport(ev) {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      try {
+        if (file.name.endsWith('.db') || file.name.endsWith('.sqlite') || file.name.endsWith('.sqlite3')) {
+          const buf = new Uint8Array(await file.arrayBuffer());
+          if (sqliteDb) sqliteDb.close();
+          sqliteDb = new SQL.Database(buf);
+          dbState.source = `${file.name} (匯入 SQLite)`;
+          syncRecordsFromSqlite();
+          runCustomSql();
+        } else if (file.name.endsWith('.csv')) {
+          const text = await file.text();
+          const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim());
+          if (lines.length > 1 && sqliteDb) {
+            const cols = lines[0].split(',').map((c) => c.trim());
+            const idxTime = cols.indexOf('recorded_at');
+            const idxSlot = cols.indexOf('slot');
+            const idxPeriod = cols.indexOf('period');
+            const idxVal = cols.indexOf('value');
+            const idxNote = cols.indexOf('note');
+            sqliteDb.run('BEGIN TRANSACTION;');
+            for (let i = 1; i < lines.length; i++) {
+              const parts = lines[i].split(',');
+              const period = PERIODS[parts[idxPeriod]] ? parts[idxPeriod] : 'fasting';
+              const val = Number(parts[idxVal]);
+              if (!Number.isFinite(val)) continue;
+              const p = PERIODS[period];
+              const dt = parts[idxTime] ? new Date(parts[idxTime]) : new Date();
+              const slot = parts[idxSlot] || '早上';
+              const note = parts[idxNote] || 'CSV 匯入';
+              const id = uuid();
+              sqliteDb.run(
+                `INSERT INTO glucose_records (id, patient_id, patient_name, recorded_at, slot, period, period_label, loinc_code, loinc_display, value, unit, interpretation, source, note)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'mg/dL', ?, 'csv', ?);`,
+                [id, PATIENT.id, PATIENT.name, toISO(dt), slot, period, p.label, p.loinc, p.display, val, interp({ period, value: val }), note]
+              );
+            }
+            sqliteDb.run('COMMIT;');
+            dbState.source = `${file.name} (CSV 已匯入 SQLite)`;
+            syncRecordsFromSqlite();
+            runCustomSql();
+          }
+        }
+      } catch (err) {
+        dbState.queryError = '匯入失敗：' + (err.message || err);
+      }
+      ev.target.value = '';
+    }
 
     const transfer = reactive({ started: false, running: false, steps: [], logs: [], sent: 0, total: 0, preview: [], previewShown: 0 });
     const doctor = reactive({ notified: false, opened: false, tab: 'overview', bundle: null, records: [], hba1c: null, suggestion: null, aiDecision: null, replied: false, showNotif: false });
@@ -346,7 +544,8 @@ createApp({
 
     function recordGlucose(period, v, slot = '') {
       const rec = { id: uuid(), time: new Date(), period, value: v, slot, source: 'chat' };
-      records.value.push(rec);
+      insertRecordToSqlite(rec);
+      if (!dbState.ready) records.value.push(rec);
       const p = PERIODS[period];
       const i = interp(rec);
       let tip;
@@ -410,7 +609,7 @@ createApp({
       let bundle;
 
       await runStep('query', async () => {
-        log(`GET PHR /Observation?code=glucose&_sort=-date&_count=${msg.data.asked}`);
+        log(`SQLite (data/glucose.db)> SELECT * FROM glucose_records ORDER BY recorded_at DESC LIMIT ${msg.data.asked};`, 'code');
         await sleep(700);
         log(`取得 ${recs.length} 筆（${fmtDate(st.from)} ~ ${fmtDate(st.to)}）`, 'ok');
         log(`空腹 ${st.fN} 筆 · 餐後 ${st.pN} 筆 · 平均 ${st.avg} mg/dL`);
@@ -526,7 +725,8 @@ createApp({
     }
 
     function reset() {
-      records.value = seedRecords();
+      initSqlite();
+      if (!dbState.ready) records.value = seedRecords();
       hba1c.value = null;
       page.value = 1;
       input.value = DEMO_PROMPT;
@@ -534,12 +734,13 @@ createApp({
       messages.value = [];
       Object.assign(transfer, { started: false, running: false, steps: [], logs: [], sent: 0, total: 0, preview: [], previewShown: 0 });
       Object.assign(doctor, { notified: false, opened: false, tab: 'overview', bundle: null, records: [], hba1c: null, suggestion: null, aiDecision: null, replied: false, showNotif: false });
-      push({ from: 'agent', type: 'text', text: `${PATIENT.name} 午安！我是你的專屬水豚健康管家「卡皮君」🦫👓\n\n小本本已經重新準備好囉 📝 在下方選好「時段」、「狀態」和「血糖值」按送出就可以開始記錄！` });
+      push({ from: 'agent', type: 'text', text: `${PATIENT.name} 午安！我是你的專屬水豚健康管家「卡皮君」🦫👓\n\n小本本與 SQLite 資料庫已經重新準備好囉 📝 在下方選好「時段」、「狀態」和「血糖值」按送出就可以開始記錄！` });
     }
 
     return {
       PERIODS, PATIENT, DOCTOR, ICD,
-      messages, input, typing, chatBody, logBox, clock, page, goPage,
+      records, messages, input, typing, chatBody, logBox, fileInput, clock, page, goPage,
+      dbState, runCustomSql, downloadSqliteDb, downloadCsv, handleFileImport,
       SLOTS, STATES, composer, composerValid, composerInterp, bump, submitComposer,
       transfer, doctor, dStats, chart, doctorTable, bundleJson,
       send, confirmConsent, cancelConsent, decideAi, doctorReply, reset,
@@ -558,7 +759,12 @@ createApp({
       <li :class="{ on: transfer.started, cur: page === 2 }" @click="goPage(2)"><span>2</span>FHIR 標準化傳輸</li>
       <li :class="{ on: doctor.notified, cur: page === 3 }" @click="goPage(3)"><span>3</span>醫師行動裝置接收</li>
     </ol>
-    <button class="ghost" @click="reset">↺ 重新開始</button>
+    <div class="top-actions">
+      <button class="ghost db-btn" @click="dbState.showModal = true; runCustomSql()">
+        🗄️ SQLite / CSV（{{ records.length }} 筆）
+      </button>
+      <button class="ghost" @click="reset">↺ 重新開始</button>
+    </div>
   </header>
 
   <main class="stage" :class="'p' + page">
@@ -569,10 +775,11 @@ createApp({
         <div class="phone-status"><span>{{ clock }}</span><span>5G ▮▮▮ 🔋</span></div>
         <div class="chat-head">
           <img class="avatar" src="avatar.jpg" alt="卡皮君" />
-          <div>
+          <div style="flex: 1">
             <div class="chat-name">卡皮君 · 健康 AI Agent</div>
-            <div class="chat-sub">{{ typing ? '卡皮君正奮筆疾書… ✏️' : '精明水豚管家 · 已連結 PHR / FHIR' }}</div>
+            <div class="chat-sub">{{ typing ? '卡皮君正奮筆疾書… ✏️' : '精明水豚管家 · 已連結 SQLite / FHIR' }}</div>
           </div>
+          <button class="ghost sm db-mini" @click="dbState.showModal = true; runCustomSql()" title="檢視 SQLite 資料庫與匯出 CSV">🗄️ DB</button>
         </div>
 
         <div class="chat-body" ref="chatBody">
@@ -865,6 +1072,53 @@ createApp({
         </div>
       </div>
     </section>
+
+    <!-- ===== SQLite / CSV 資料庫管理視窗 ===== -->
+    <div v-if="dbState.showModal" class="db-backdrop" @click.self="dbState.showModal = false">
+      <div class="db-modal">
+        <div class="db-head">
+          <div>
+            <b>🗄️ 卡皮君的 SQLite 血糖資料庫 ＆ CSV 管理</b>
+            <span class="db-badge">{{ dbState.source }} · 共 {{ records.length }} 筆</span>
+          </div>
+          <div class="db-actions">
+            <button class="ghost sm" @click="downloadSqliteDb">⬇ 匯出 .db (SQLite)</button>
+            <button class="ghost sm" @click="downloadCsv">⬇ 匯出 .csv (Excel)</button>
+            <button class="ghost sm" @click="fileInput.click()">⬆ 匯入 .db / .csv</button>
+            <input ref="fileInput" type="file" accept=".db,.sqlite,.sqlite3,.csv" style="display:none" @change="handleFileImport" />
+            <button class="ghost sm" @click="dbState.showModal = false">✕ 關閉</button>
+          </div>
+        </div>
+
+        <div class="db-sql-bar">
+          <div class="db-presets">
+            <span>常用 SQL：</span>
+            <button class="ghost sm" @click="runCustomSql('SELECT substr(recorded_at, 1, 16) AS 時間, slot AS 時段, period_label AS 狀態, value AS 血糖值, interpretation AS 判讀, loinc_code AS LOINC, note AS 備註 FROM glucose_records ORDER BY recorded_at DESC LIMIT 20;')">最近 20 筆</button>
+            <button class="ghost sm" @click="runCustomSql('SELECT substr(recorded_at, 1, 16) AS 時間, slot AS 時段, period_label AS 狀態, value AS 血糖值, note AS 備註 FROM glucose_records WHERE interpretation = \\'H\\' ORDER BY value DESC;')">超標紀錄 (H)</button>
+            <button class="ghost sm" @click="runCustomSql('SELECT period_label AS 狀態, COUNT(*) AS 筆數, ROUND(AVG(value), 1) AS 平均血糖, MIN(value) AS 最低, MAX(value) AS 最高 FROM glucose_records GROUP BY period_label;')">依狀態統計 (GROUP BY)</button>
+            <button class="ghost sm" @click="runCustomSql('SELECT substr(recorded_at, 1, 16) AS 時間, slot AS 時段, period_label AS 狀態, value AS 血糖值, source AS 來源 FROM glucose_records WHERE source != \\'seed\\' ORDER BY recorded_at DESC;')">對話新增紀錄</button>
+          </div>
+          <div class="db-query-row">
+            <textarea v-model="dbState.sqlQuery" rows="2" spellcheck="false"></textarea>
+            <button class="primary" @click="runCustomSql()">▶ 執行 SQL</button>
+          </div>
+          <div v-if="dbState.queryError" class="db-err">⚠️ {{ dbState.queryError }}</div>
+        </div>
+
+        <div class="db-table-wrap">
+          <table class="db-table" v-if="dbState.queryCols.length">
+            <thead>
+              <tr><th v-for="c in dbState.queryCols" :key="c">{{ c }}</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, rIdx) in dbState.queryRows" :key="rIdx">
+                <td v-for="(cell, cIdx) in row" :key="cIdx">{{ cell }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </main>
   `,
 }).mount('#app');

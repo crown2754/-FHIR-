@@ -1,0 +1,81 @@
+﻿id,patient_id,patient_name,recorded_at,slot,period,period_label,loinc_code,loinc_display,value,unit,interpretation,source,note
+f94f4f1e-5a66-4cc3-bbdb-002618d88dc4,A12****789,Gary,2026-08-09T07:39:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,123,mg/dL,N,seed,規律服藥後晨測
+a857b2e0-8f2a-4d1f-a604-ee2ee8d5dffd,A12****789,Gary,2026-08-10T07:38:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,117,mg/dL,N,seed,規律服藥後晨測
+111b1468-cd5b-4963-9a48-bc016ca9f361,A12****789,Gary,2026-08-10T17:15:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,197,mg/dL,H,seed,午餐後2小時
+6baccde9-5749-47e7-8ff0-f4d7067ddecc,A12****789,Gary,2026-08-11T07:37:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,124,mg/dL,N,seed,早餐前量測
+da7077f5-f57a-4f77-83af-c49e423b6605,A12****789,Gary,2026-08-12T07:28:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,125,mg/dL,N,seed,早餐前量測
+82a050ba-e58d-4ae3-8013-040292f1d840,A12****789,Gary,2026-08-12T19:02:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,188,mg/dL,H,seed,餐後散步15分鐘
+74f77dba-0317-4e08-8932-281eeba85999,A12****789,Gary,2026-08-13T07:10:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,136,mg/dL,H,seed,早餐前量測
+56c4d5fb-e395-46e7-9293-69f6e43589b1,A12****789,Gary,2026-08-14T14:48:00+08:00,中午,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,211,mg/dL,H,seed,聚餐後量測
+2d5d7f21-ce63-4a20-b1fe-2b54e07d3402,A12****789,Gary,2026-08-15T07:39:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,115,mg/dL,N,seed,晨起空腹例行量測
+111b97cc-da7b-4fcf-a53b-7eca8b596a74,A12****789,Gary,2026-08-16T07:04:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,126,mg/dL,N,seed,早餐前量測
+70769683-e609-4d06-a7cc-66507b9a5fc7,A12****789,Gary,2026-08-17T07:27:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,133,mg/dL,H,seed,規律服藥後晨測
+692f1690-8960-45c4-b23e-1c0ef942909b,A12****789,Gary,2026-08-17T14:20:00+08:00,中午,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,183,mg/dL,H,seed,餐後散步15分鐘
+7216f7fd-1a54-4f40-8015-aa3a1fa6f39d,A12****789,Gary,2026-08-18T07:06:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,112,mg/dL,N,seed,睡眠充足
+cd77d7d5-625e-476f-9b45-fb87415952d6,A12****789,Gary,2026-08-19T07:26:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,100,mg/dL,N,seed,早餐前量測
+0ae2ed63-f4cb-48aa-99a8-a1223e9ddc7f,A12****789,Gary,2026-08-19T19:48:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,230,mg/dL,H,seed,晚餐後2小時
+ef223e5e-6838-48fb-a668-84f196167c42,A12****789,Gary,2026-08-20T07:05:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,131,mg/dL,H,seed,早餐前量測
+744a8ce1-cb16-4592-913f-4bec2c74b411,A12****789,Gary,2026-08-21T07:39:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,134,mg/dL,H,seed,規律服藥後晨測
+5d89c3a9-ebd4-40ab-a9aa-8d946960ed90,A12****789,Gary,2026-08-21T17:53:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,149,mg/dL,N,seed,晚餐後2小時
+5f937c14-92e8-4027-8573-946fb7e10888,A12****789,Gary,2026-08-22T07:11:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,132,mg/dL,H,seed,早餐前量測
+38f2ceec-e87b-4b4d-8993-dec69bcdb6d6,A12****789,Gary,2026-08-23T07:04:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,99,mg/dL,N,seed,前一晚較晚進食
+1ffbbd1a-340f-472e-bdc8-4e4bd043f582,A12****789,Gary,2026-08-24T07:13:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,111,mg/dL,N,seed,規律服藥後晨測
+ffc7941b-300a-413b-baa9-3fdb54f5a65b,A12****789,Gary,2026-08-25T07:40:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,123,mg/dL,N,seed,早餐前量測
+f07c1530-2c8b-4b46-b731-86151c607691,A12****789,Gary,2026-08-26T07:37:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,101,mg/dL,N,seed,睡眠充足
+6a266faa-a357-428c-8b8c-daa03ebb3bd5,A12****789,Gary,2026-08-27T07:24:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,133,mg/dL,H,seed,早餐前量測
+5865d0d0-e686-4217-aebd-0723d13bf466,A12****789,Gary,2026-08-28T07:09:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,140,mg/dL,H,seed,晨起空腹例行量測
+260e9539-2866-4a60-8d93-ba4de9fa2efd,A12****789,Gary,2026-08-29T07:39:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,101,mg/dL,N,seed,早餐前量測
+85844e56-c2de-4117-867c-bd202f2b302d,A12****789,Gary,2026-08-30T07:08:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,122,mg/dL,N,seed,早餐前量測
+b5eead27-9d90-4774-af01-af766cfcb8c3,A12****789,Gary,2026-08-31T07:34:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,113,mg/dL,N,seed,規律服藥後晨測
+1bf6c578-e52b-46a0-89c7-f822276e6368,A12****789,Gary,2026-09-01T07:02:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,111,mg/dL,N,seed,早餐前量測
+9c3aa487-6f1b-419a-b4c8-f64e3057cea5,A12****789,Gary,2026-09-02T07:16:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,114,mg/dL,N,seed,睡眠充足
+28f65cff-cee7-4801-ad72-6f6a3fe0548b,A12****789,Gary,2026-09-03T16:04:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,174,mg/dL,N,seed,外食便當飯量較多
+056ec6bd-5a1d-4427-81c0-50907f18f612,A12****789,Gary,2026-09-04T07:40:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,113,mg/dL,N,seed,早餐前量測
+8a409524-616e-4bd2-a274-1184d7ae5283,A12****789,Gary,2026-09-04T15:29:00+08:00,中午,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,140,mg/dL,N,seed,外食便當飯量較多
+96a10466-bf1e-4695-8a34-dd9db1c8fae7,A12****789,Gary,2026-09-05T07:34:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,103,mg/dL,N,seed,規律服藥後晨測
+9a54bb1b-0fc3-4b2b-87c1-9159af23ece0,A12****789,Gary,2026-09-07T19:58:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,211,mg/dL,H,seed,餐後散步15分鐘
+53be36a3-6413-440c-8e71-6b21f5953922,A12****789,Gary,2026-09-08T07:20:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,111,mg/dL,N,seed,晨起空腹例行量測
+c930884c-7362-463b-a2ac-16c2ce309bf9,A12****789,Gary,2026-09-09T07:03:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,107,mg/dL,N,seed,規律服藥後晨測
+216f36b8-9c9f-4674-aaeb-75bb5071d700,A12****789,Gary,2026-09-11T07:37:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,133,mg/dL,H,seed,睡眠充足
+1b1f7e2f-635e-48cb-bd99-b4bf0671b57c,A12****789,Gary,2026-09-12T16:53:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,153,mg/dL,N,seed,晚餐後2小時
+94440a66-783c-4e2c-92cb-faeb334989be,A12****789,Gary,2026-09-13T07:08:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,133,mg/dL,H,seed,規律服藥後晨測
+8ac3c2aa-9473-4afd-a8ba-b80becce76fa,A12****789,Gary,2026-09-13T17:36:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,203,mg/dL,H,seed,午餐後2小時
+0dcfd6ba-c8e9-49c0-ac28-29e4d119f181,A12****789,Gary,2026-09-14T07:20:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,104,mg/dL,N,seed,前一晚較晚進食
+6bb7497a-9442-45bd-8ff5-5c28f47e2d02,A12****789,Gary,2026-09-15T07:24:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,116,mg/dL,N,seed,早餐前量測
+3c1df1a7-6323-4db2-88fe-a8859ccedff7,A12****789,Gary,2026-09-15T19:08:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,227,mg/dL,H,seed,外食便當飯量較多
+2003b2bd-4865-475f-8823-a32789f81dad,A12****789,Gary,2026-09-16T07:37:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,125,mg/dL,N,seed,規律服藥後晨測
+57dee502-a911-4650-b93b-11ebade459d7,A12****789,Gary,2026-09-17T07:10:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,116,mg/dL,N,seed,早餐前量測
+efcacb18-d0d8-48b3-9454-a63f5d231a39,A12****789,Gary,2026-09-17T18:34:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,220,mg/dL,H,seed,午餐後2小時
+8e5aa211-b06e-4973-89ac-65ec7e5d3e40,A12****789,Gary,2026-09-19T07:18:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,140,mg/dL,H,seed,規律服藥後晨測
+66b97e49-95e2-4193-bc77-8006a1e78cbc,A12****789,Gary,2026-09-20T07:24:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,101,mg/dL,N,seed,晨起空腹例行量測
+c0f780cb-43cc-4445-ab19-99271df9439e,A12****789,Gary,2026-09-20T15:33:00+08:00,中午,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,208,mg/dL,H,seed,外食便當飯量較多
+3755b268-76ff-4cd6-a641-24204da426bd,A12****789,Gary,2026-09-21T07:23:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,113,mg/dL,N,seed,前一晚較晚進食
+4e1a1e14-7111-47b0-968d-b581aa0a7cdb,A12****789,Gary,2026-09-23T07:31:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,125,mg/dL,N,seed,睡眠充足
+caa9b851-fe42-497e-8007-88d397dcfd95,A12****789,Gary,2026-09-23T16:42:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,154,mg/dL,N,seed,晚餐後2小時
+87baf9dd-13a6-436f-8eee-a29a080608ab,A12****789,Gary,2026-09-24T07:11:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,112,mg/dL,N,seed,早餐前量測
+9f6ed592-521d-4714-b45d-34829149df04,A12****789,Gary,2026-09-25T07:36:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,131,mg/dL,H,seed,晨起空腹例行量測
+0aad32d2-eb84-4825-86a6-4452c72eb82f,A12****789,Gary,2026-09-26T07:37:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,110,mg/dL,N,seed,睡眠充足
+d2ec7078-d992-4a78-87be-5a042ee9ce6b,A12****789,Gary,2026-09-27T07:25:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,125,mg/dL,N,seed,晨起空腹例行量測
+cf16f1c0-ba56-4fab-ac34-ba4961031128,A12****789,Gary,2026-09-29T07:13:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,100,mg/dL,N,seed,前一晚較晚進食
+11c5d135-d44b-40cf-8f99-f5acbc0e3a4a,A12****789,Gary,2026-09-30T07:34:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,115,mg/dL,N,seed,早餐前量測
+0b12a8c9-f8a5-4149-b397-5e439de4cbf5,A12****789,Gary,2026-09-30T16:43:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,222,mg/dL,H,seed,晚餐後2小時
+a14ce174-1aa3-42ce-b2ff-26f7d26c5d3d,A12****789,Gary,2026-10-01T07:18:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,141,mg/dL,H,seed,睡眠充足
+17dc246d-8e0e-40d3-a7a3-6613e828a6e5,A12****789,Gary,2026-10-02T07:39:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,116,mg/dL,N,seed,早餐前量測
+4af5143f-4823-4e60-aaa4-8dc1b31a2e19,A12****789,Gary,2026-10-03T07:17:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,137,mg/dL,H,seed,睡眠充足
+cc7f3366-b839-4adc-be73-75afe79b24d5,A12****789,Gary,2026-10-05T07:25:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,98,mg/dL,N,seed,規律服藥後晨測
+a3571a46-bb4c-45cd-815a-40257eecb862,A12****789,Gary,2026-10-06T07:38:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,128,mg/dL,N,seed,規律服藥後晨測
+ce307762-3695-4c43-be36-edd0b5edc7c3,A12****789,Gary,2026-10-07T15:55:00+08:00,中午,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,142,mg/dL,N,seed,晚餐後2小時
+e20958fb-b0cd-4f0c-b223-2309510af1ef,A12****789,Gary,2026-10-08T07:05:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,134,mg/dL,H,seed,前一晚較晚進食
+c0f35401-598c-41ff-a3e0-bb03ff9cd059,A12****789,Gary,2026-10-09T07:27:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,130,mg/dL,N,seed,規律服藥後晨測
+930dbd9f-7b18-436d-9222-0ebe47784571,A12****789,Gary,2026-10-09T17:05:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,199,mg/dL,H,seed,餐後散步15分鐘
+99430221-7d7f-48ee-88c1-0b868e158fac,A12****789,Gary,2026-10-10T07:31:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,105,mg/dL,N,seed,睡眠充足
+32dd8f2a-94af-47b0-ab88-2d5340e45290,A12****789,Gary,2026-10-11T07:13:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,127,mg/dL,N,seed,晨起空腹例行量測
+cb900b84-e96a-43cd-9260-08273e3e6b59,A12****789,Gary,2026-10-12T07:18:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,135,mg/dL,H,seed,晨起空腹例行量測
+ed46dee8-bc54-4f94-b751-21a79fc3b3b9,A12****789,Gary,2026-10-13T07:30:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,103,mg/dL,N,seed,早餐前量測
+126495d3-5352-4f3f-91a2-f0c34273adad,A12****789,Gary,2026-10-14T07:04:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,116,mg/dL,N,seed,規律服藥後晨測
+66e7d4aa-4b76-4aef-8104-5e1c57a11a57,A12****789,Gary,2026-10-15T07:33:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,100,mg/dL,N,seed,晨起空腹例行量測
+cbae7962-ac7a-4e65-bcd1-8a16bce9b455,A12****789,Gary,2026-10-15T18:45:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,204,mg/dL,H,seed,晚餐後2小時
+973a9620-2683-471a-a92e-6a1a9c40705a,A12****789,Gary,2026-10-16T07:03:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,109,mg/dL,N,seed,規律服藥後晨測
+7c3576d2-8056-4b5c-b99a-baa167acbb07,A12****789,Gary,2026-10-17T07:34:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,139,mg/dL,H,seed,睡眠充足
+e1eb0278-ef67-427b-8a71-2451e91cc9d5,A12****789,Gary,2026-10-19T07:15:00+08:00,早上,fasting,空腹,1558-6,Fasting glucose [Mass/volume] in Serum or Plasma,140,mg/dL,H,seed,早餐前量測
+cbf198af-38dc-4350-a985-46293faceb44,A12****789,Gary,2026-10-19T16:24:00+08:00,晚上,post2h,餐後2h,1521-4,Glucose [Mass/volume] in Serum or Plasma --2 hours post meal,180,mg/dL,N,seed,餐後散步15分鐘
