@@ -44,7 +44,7 @@ const ICD = {
   'Z79.84': 'Long term (current) use of oral hypoglycemic drugs',
 };
 const PATIENT = { name: 'Gary', gender: 'male', birthDate: '1988-03-14', id: 'A12****789' };
-const DOCTOR = { name: '林怡君 醫師', dept: '新陳代謝科', org: '中原智慧醫院' };
+const DOCTOR = { name: '原振俠 醫師', dept: '新陳代謝科', org: '中原智慧醫院' };
 
 function interp(r) {
   if (r.value < 70) return 'L';
@@ -225,7 +225,7 @@ createApp({
 
     push({
       from: 'agent', type: 'text',
-      text: `${PATIENT.name} 午安！我是你的專屬健康 AI Agent「央央」🩺\n\n在下方選好「時段」、「狀態」和「血糖值」按送出，我會幫你記錄成 FHIR 標準格式。\n\n記錄完可以按「📤 傳最近 50 筆給醫師」。`,
+      text: `${PATIENT.name} 午安！我是你的專屬水豚健康管家「卡皮君」🦫👓\n\n小本本已經準備好囉 📝 在下方選好「時段」、「狀態」和「血糖值」按送出，本豚就會迅速幫你轉換成國際標準 FHIR 格式收進健康檔案！\n\n累積好紀錄後，隨時按「📤 傳最近 50 筆給醫師」，交給我一鍵打包護送～`,
     });
 
     const page = ref(1);
@@ -264,7 +264,7 @@ createApp({
       const count = countMatch ? cnToNum(countMatch[1]) : NaN;
 
       if (/(傳|送|分享|上傳|給).*(醫師|醫生|醫院|大夫)/.test(t)) {
-        if (transfer.running) return agentSay({ text: '資料正在傳送中，請稍候喔～' });
+        if (transfer.running) return agentSay({ text: '卡皮君正在全速跑腿傳送資料中，請稍等一下下喔 🐾' });
         const n = Number.isFinite(count) && count > 0 ? count : 50;
         const recs = sortedRecords.value.slice(0, n);
         const st = calcStats(recs);
@@ -282,7 +282,7 @@ createApp({
         typing.value = true; scrollChat();
         await sleep(700);
         typing.value = false;
-        return push({ from: 'agent', type: 'table', text: `這是你最近 ${n} 筆血糖紀錄：`, data: sortedRecords.value.slice(0, n) });
+        return push({ from: 'agent', type: 'table', text: `（推眼鏡👓）翻開小本本！這是你最近 ${n} 筆血糖紀錄，整整齊齊：`, data: sortedRecords.value.slice(0, n) });
       }
 
       if (/(糖化|a1c)/i.test(t) && /(預估|估算|推估|估計|計算|多少|幫我算)/.test(t)) {
@@ -294,25 +294,25 @@ createApp({
 
       if (/(糖化|a1c)/i.test(t)) {
         const m = t.replace(/hba1c|a1c/gi, '').match(/(\d{1,2}(?:\.\d)?)/);
-        if (!m) return agentSay({ text: '請告訴我糖化血色素的數值，例如「糖化血色素 6.8」。' });
+        if (!m) return agentSay({ text: '歪頭 🦫 請告訴卡皮君糖化血色素的數值喔，例如「糖化血色素 6.8」～' });
         const v = parseFloat(m[1]);
         hba1c.value = { value: v, time: new Date() };
         const tip = v >= 7
-          ? '高於一般糖尿病友的控制目標（<7%），回診時可以跟醫師討論治療調整。'
-          : '在一般糖尿病友的控制目標（<7%）內，繼續保持！';
+          ? '稍微高於一般糖友的控制目標（<7%）喔，回診時我們一起請原振俠醫師看看怎麼調整治療！'
+          : '穩穩控制在目標（<7%）內，跟水豚一樣情緒與血糖都超穩定，繼續保持！🌟';
         return agentSay({
           type: 'record',
-          text: `已記錄糖化血色素 HbA1c ${v}%。\n${tip}\n\n它反映的是過去約 3 個月的平均血糖，所以平常把「餐後 2 小時」也記下來，估算會更準確喔。`,
+          text: `唰唰唰 📝 已幫你把糖化血色素 HbA1c ${v}% 記進小本本囉！\n${tip}\n\n💡 卡皮君小知識：它反映過去約 3 個月的平均血糖，平常多記「餐後 2 小時」，本豚幫你推算會更神準喔！`,
           data: { code: '4548-4', display: 'Hemoglobin A1c', value: v, unit: '%', interp: v >= 7 ? 'H' : 'N' },
         });
       }
 
       const valMatch = t.match(/(\d{2,3})/);
       const hasGlucose = /血糖|飯後|餐後|空腹|餐前|睡前/.test(t);
-      if (hasGlucose && !valMatch) return agentSay({ text: '血糖是多少呢？告訴我數字就好，例如「晚餐後血糖 165」。' });
+      if (hasGlucose && !valMatch) return agentSay({ text: '小鉛筆準備好了 ✏️ 血糖是多少呢？告訴我數字就好，例如「晚餐後血糖 165」～' });
       if (valMatch) {
         const v = +valMatch[1];
-        if (v < 20 || v > 600) return agentSay({ text: `${v} mg/dL 看起來不太合理，要不要再確認一下血糖機的數字？` });
+        if (v < 20 || v > 600) return agentSay({ text: `咦？${v} mg/dL 讓卡皮君的眼鏡都滑下來了 👓💦 要不要再確認一下血糖機上的數字呢？` });
         let period = 'random';
         if (/飯後|餐後|吃完|食後/.test(t)) period = 'post2h';
         else if (/餐前|飯前/.test(t)) period = 'premeal';
@@ -320,7 +320,7 @@ createApp({
         return recordGlucose(period, v);
       }
 
-      return agentSay({ text: '我可以幫你：\n• 記錄血糖（例：午餐後血糖 186）\n• 記錄糖化血色素（例：糖化血色素 6.8）\n• 列出紀錄（例：列出最近十筆血糖）\n• 傳給醫師（例：把最近五十筆血糖傳給我的醫師）' });
+      return agentSay({ text: '包在精明能幹的卡皮君身上 🦫✨ 我可以幫你：\n• 記錄血糖（例：午餐後血糖 186）\n• 記錄糖化血色素（例：糖化血色素 6.8）\n• 預估糖化血色素（例：預估我最近的糖化血色素）\n• 列出紀錄（例：列出最近十筆血糖）\n• 傳給醫師（例：把最近五十筆血糖傳給我的醫師）' });
     }
 
     function estimateA1c() {
@@ -329,15 +329,15 @@ createApp({
       const s = calcStats(recs);
       const e = (s.avg + 46.7) / 28.7;
       const lab = hba1c.value;
-      let text = `${PATIENT.name}，我用你最近 90 天的 ${s.n} 筆血糖幫你推算了一下：`;
+      let text = `${PATIENT.name}，（推眼鏡👓）卡皮君調出你最近 90 天的 ${s.n} 筆血糖，高速精算結果出爐囉：`;
       let note = s.pN / s.n < 0.4
-        ? `你的紀錄以空腹為主（空腹 ${s.fN} 筆、餐後 ${s.pN} 筆），餐後高點容易被漏掉，實際糖化血色素可能比估算值更高。`
-        : '空腹與餐後紀錄比例還不錯，估算的參考價值較高。';
+        ? `🧐 本豚敏銳發現：你的紀錄以空腹為主（空腹 ${s.fN} 筆、餐後 ${s.pN} 筆），餐後波動容易漏抓，實際抽血的糖化血色素可能會比估算值再高一些喔！`
+        : '✨ 空腹與餐後紀錄比例很均衡，卡皮君算出的這份參考價值很高喔！';
       if (lab) {
         const diff = (lab.value - e).toFixed(1);
-        note += `\n\n跟你回報的實測值 ${lab.value}% 相比差了 ${diff > 0 ? '+' : ''}${diff}%。`;
+        note += `\n\n📊 跟你回報的實測值 ${lab.value}% 相比差了 ${diff > 0 ? '+' : ''}${diff}%。`;
       }
-      note += '\n\n⚠️ 這只是依平均血糖換算的估計，不能取代醫院抽血檢驗。';
+      note += '\n\n⚠️ 卡皮君貼心提醒：這是依平均血糖換算的推估值，不能取代醫院抽血檢驗喔！';
       return {
         from: 'agent', type: 'a1c', text, note,
         data: { ...s, e: e.toFixed(1), lab, pos: Math.min(100, Math.max(0, ((e - 4) / 6) * 100)) },
@@ -350,15 +350,15 @@ createApp({
       const p = PERIODS[period];
       const i = interp(rec);
       let tip;
-      if (i === 'L') tip = '⚠️ 這是低血糖！請立刻補充 15 公克快速糖（例如半杯果汁），15 分鐘後再測一次。';
-      else if (period === 'post2h' && v >= 250) tip = '明顯偏高。若持續偏高或有口渴、多尿、疲倦，請盡快就醫。';
+      if (i === 'L') tip = '🚨 警報！這是低血糖！卡皮君請你立刻補充 15 公克快速糖（像半杯果汁或 3 顆方糖），15 分鐘後一定要再測一次喔！';
+      else if (period === 'post2h' && v >= 250) tip = '⚠️ 數值明顯偏高！如果持續偏高，或是覺得口渴、多尿、累累的，要盡快找醫師報到喔！';
       else if (i === 'H') tip = period === 'post2h'
-        ? '高於糖友餐後目標（<180 mg/dL）。回想一下這餐的澱粉份量，飯後散步 15 分鐘也有幫助喔！'
-        : `高於${p.label}目標（${p.target} mg/dL），可以留意前一晚的宵夜與用藥時間。`;
-      else tip = `在目標範圍（${p.target} mg/dL）內，控制得很好 👍`;
+        ? '稍微高於餐後目標（<180 mg/dL）囉～回想一下這餐是不是澱粉比較多？跟著卡皮君去散步 15 分鐘很有幫助喔 🐾'
+        : `稍微高於${p.label}目標（${p.target} mg/dL），可以留意是不是前一晚有吃宵夜或用藥時間變動喔 🧐`;
+      else tip = `穩穩落在目標範圍（${p.target} mg/dL）內！跟水豚頂橘子一樣穩當當 🍊👍`;
       return agentSay({
         type: 'record',
-        text: `收到！已幫你記錄 ${slot}${p.label}血糖 ${v} mg/dL（${fmtTime(rec.time)}）。\n${tip}\n\n目前資料庫共有 ${records.value.length} 筆血糖紀錄。`,
+        text: `筆記完成 📝！已幫你記錄 ${slot}${p.label}血糖 ${v} mg/dL（${fmtTime(rec.time)}）。\n${tip}\n\n目前卡皮君的金庫裡已經幫你收好 ${records.value.length} 筆血糖紀錄囉！`,
         data: { code: p.loinc, display: p.display, value: v, unit: 'mg/dL', interp: i },
       });
     }
@@ -373,7 +373,7 @@ createApp({
 
     function cancelConsent(msg) {
       msg.state = 'cancelled';
-      agentSay({ text: '好的，已取消，資料不會離開你的手機。' }, 500);
+      agentSay({ text: '收到！卡皮君立刻把資料鎖回小金庫 🔒 絕對不會離開你的手機半步喔～' }, 500);
     }
 
     /* ----- 傳輸流程 ----- */
@@ -392,7 +392,7 @@ createApp({
 
     async function confirmConsent(msg) {
       msg.state = 'confirmed';
-      push({ from: 'agent', type: 'text', text: '收到授權 ✅ 開始傳送！' });
+      push({ from: 'agent', type: 'text', text: '收到授權 ✅ 卡皮君戴好眼鏡，啟動 FHIR 加密特快車出發囉 🦫💨！' });
 
       Object.assign(transfer, {
         started: true, running: true, logs: [], sent: 0, preview: [], previewShown: 0,
@@ -482,7 +482,7 @@ createApp({
       transfer.running = false;
       push({
         from: 'agent', type: 'done',
-        text: `傳送完成！${DOCTOR.name}已收到你最近 ${recs.length} 筆血糖紀錄${hba1c.value ? '與糖化血色素' : ''}。`,
+        text: `使命必達 🦫✨！卡皮君已經把最近 ${recs.length} 筆血糖紀錄${hba1c.value ? '與糖化血色素' : ''}安全送到 ${DOCTOR.name} 的平板上囉！`,
         data: { id: bundle.id.slice(0, 8), n: bundle.entry.length },
       });
     }
@@ -534,7 +534,7 @@ createApp({
       messages.value = [];
       Object.assign(transfer, { started: false, running: false, steps: [], logs: [], sent: 0, total: 0, preview: [], previewShown: 0 });
       Object.assign(doctor, { notified: false, opened: false, tab: 'overview', bundle: null, records: [], hba1c: null, suggestion: null, aiDecision: null, replied: false, showNotif: false });
-      push({ from: 'agent', type: 'text', text: `${PATIENT.name} 午安！我是你的專屬健康 AI Agent「央央」🩺\n\n在下方選好「時段」、「狀態」和「血糖值」按送出就可以記錄囉。` });
+      push({ from: 'agent', type: 'text', text: `${PATIENT.name} 午安！我是你的專屬水豚健康管家「卡皮君」🦫👓\n\n小本本已經重新準備好囉 📝 在下方選好「時段」、「狀態」和「血糖值」按送出就可以開始記錄！` });
     }
 
     return {
@@ -568,10 +568,10 @@ createApp({
       <div class="phone">
         <div class="phone-status"><span>{{ clock }}</span><span>5G ▮▮▮ 🔋</span></div>
         <div class="chat-head">
-          <div class="avatar">央</div>
+          <img class="avatar" src="avatar.jpg" alt="卡皮君" />
           <div>
-            <div class="chat-name">央央 · 健康 AI Agent</div>
-            <div class="chat-sub">{{ typing ? '正在輸入…' : 'bot · 已連結 PHR / FHIR' }}</div>
+            <div class="chat-name">卡皮君 · 健康 AI Agent</div>
+            <div class="chat-sub">{{ typing ? '卡皮君正奮筆疾書… ✏️' : '精明水豚管家 · 已連結 PHR / FHIR' }}</div>
           </div>
         </div>
 
@@ -631,8 +631,8 @@ createApp({
             </div>
 
             <div v-else-if="m.type === 'consent'" class="bubble consent">
-              <div class="chip-h">📤 分享授權確認</div>
-              <div class="txt">即將傳送給 <b>{{ DOCTOR.name }}</b>（{{ DOCTOR.org }} {{ DOCTOR.dept }}）：</div>
+              <div class="chip-h">📤 卡皮君的分享授權確認單 🦫📝</div>
+              <div class="txt">本豚已經幫你整理好包裹，準備加密傳送給 <b>{{ DOCTOR.name }}</b>（{{ DOCTOR.org }} {{ DOCTOR.dept }}）：</div>
               <ul>
                 <li>最近 <b>{{ m.data.n }}</b> 筆血糖紀錄（{{ m.data.from }} ~ {{ m.data.to }}）</li>
                 <li v-if="m.data.hba1c">糖化血色素 {{ m.data.hba1c.value }}%</li>
@@ -838,7 +838,7 @@ createApp({
             </div>
 
             <div class="summary">
-              <b>🤖 AI 摘要（供醫師參考）</b>
+              <b>🦫 卡皮君 AI 臨床摘要（供原振俠醫師參考）</b>
               <p>近 {{ dStats.n }} 筆中空腹 {{ dStats.fN }} 筆、餐後 {{ dStats.pN }} 筆；餐後 &gt;180 mg/dL 共 {{ dStats.pHigh }} 次，最高 {{ dStats.max }} mg/dL{{ dStats.low ? '，有 ' + dStats.low + ' 次低血糖' : '，無低血糖紀錄' }}。
                 餐後紀錄比例偏低，建議請病人增加餐後 2 小時監測。</p>
               <button class="primary" :disabled="doctor.replied" @click="doctorReply">{{ doctor.replied ? '✅ 已回覆病人' : '💬 回覆病人（傳回病人手機）' }}</button>
