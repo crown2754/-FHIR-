@@ -991,7 +991,7 @@ createApp({
       <li :class="{ on: true, cur: page === 1 }" @click="goPage(1)"><span>1</span>病人對 AI 記錄血糖</li>
       <li :class="{ on: transfer.started, cur: page === 2 }" @click="goPage(2)"><span>2</span>FHIR 標準化傳輸</li>
       <li :class="{ on: doctor.notified, cur: page === 3 }" @click="goPage(3)"><span>3</span>醫師行動裝置接收</li>
-      <li :class="{ on: true, cur: page === 4 }" class="joy-stage" @click="goPage(4)"><span>4</span>喬伊小姐健保申報</li>
+      <li :class="{ on: true, cur: page === 4 }" class="joy-stage" @click="goPage(4)"><span>4</span>健保申報</li>
     </ol>
     <div class="top-actions">
       <button class="ghost db-btn" @click="dbState.showModal = true; runCustomSql()">
