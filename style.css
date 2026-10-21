@@ -310,9 +310,185 @@ table.full .v-L { color: #b45309; }
 .db-table td { padding: 6px 12px; border-bottom: 1px solid #122e3a; color: var(--text); }
 .db-table tr:hover td { background: rgba(45, 212, 191, .06); }
 
+/* ---------- Stage 4: Nurse Joy NHI Claim Desk ---------- */
+:root {
+  --joy-pink: #f472b6;
+  --joy-pink-d: #db2777;
+  --joy-soft: rgba(244, 114, 182, 0.14);
+}
+.stages li.joy-stage.on span { background: var(--joy-pink-d); color: #fff; }
+.stages li.joy-stage.cur { border-color: var(--joy-pink); box-shadow: 0 0 14px rgba(244, 114, 182, .38); }
+.title-av.joy-av { border-color: var(--joy-pink); object-position: 50% 18%; }
+.summary-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.joy-btn {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: #fff; font-weight: 700; padding: 8px 14px;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, .3);
+}
+.joy-btn:hover { filter: brightness(1.08); }
+
+.col-claim { max-width: 1360px; }
+.claim-desk {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: 1.18fr 1fr; gap: 14px;
+}
+.claim-left, .claim-right {
+  min-height: 0; overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+  padding: 14px; display: flex; flex-direction: column; gap: 11px;
+}
+
+.joy-banner {
+  display: flex; gap: 14px; align-items: center;
+  background: linear-gradient(135deg, rgba(244, 114, 182, .16), rgba(45, 212, 191, .08));
+  border: 1px solid rgba(244, 114, 182, .4);
+  border-radius: 14px; padding: 12px 14px;
+}
+.joy-portrait {
+  width: 74px; height: 74px; border-radius: 50%;
+  object-fit: cover; object-position: 50% 18%;
+  border: 3px solid var(--joy-pink);
+  box-shadow: 0 0 18px rgba(244, 114, 182, .45);
+  flex: none; background: #2a1829;
+}
+.joy-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.joy-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.joy-name { font-size: 18px; font-weight: 800; color: #fbcfe8; }
+.joy-badge {
+  font-size: 12px; padding: 2px 9px; border-radius: 99px;
+  background: rgba(244, 114, 182, .22); color: #f9a8d4; border: 1px solid rgba(244, 114, 182, .35);
+}
+.joy-id { font-size: 11.5px; color: var(--muted); font-family: Consolas, monospace; margin-left: auto; }
+.joy-quote { font-size: 12.5px; line-height: 1.55; color: #e5f3f5; }
+.joy-quote b { color: var(--teal); }
+
+.case-meta-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.case-meta-bar > div {
+  background: #081c24; border: 1px solid var(--line); border-radius: 10px;
+  padding: 7px 10px; display: flex; flex-direction: column; gap: 2px;
+}
+.case-meta-bar small { font-size: 11px; color: var(--muted); }
+.case-meta-bar b { font-size: 12.5px; color: #fff; }
+
+.claim-card {
+  background: #081c24; border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;
+}
+.claim-card-h {
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; color: var(--teal); font-size: 13.5px;
+}
+.claim-card-h small { font-weight: 400; font-size: 11.5px; color: var(--muted); }
+
+.claim-dx-list { display: flex; flex-direction: column; gap: 6px; }
+.claim-dx-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 10px; border-radius: 9px;
+  background: #0c2631; border: 1px solid #19404e;
+  cursor: pointer; transition: .2s;
+}
+.claim-dx-item.ai { border-color: rgba(251, 191, 36, .45); background: rgba(251, 191, 36, .06); }
+.claim-dx-item.off { opacity: .48; }
+.claim-dx-item input[type="checkbox"] { accent-color: var(--joy-pink); width: 15px; height: 15px; cursor: pointer; }
+.dx-role {
+  font-size: 11px; padding: 2px 7px; border-radius: 6px;
+  background: rgba(45, 212, 191, .14); color: var(--teal); white-space: nowrap;
+}
+.dx-role.ai { background: rgba(251, 191, 36, .18); color: var(--warn); }
+.dx-code {
+  background: #06151b; color: #93c5fd; padding: 3px 7px; border-radius: 6px;
+  font-weight: 700; min-width: 58px; text-align: center;
+}
+.dx-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.dx-text b { font-size: 13px; color: #fff; }
+.dx-text small { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dx-sync { font-size: 11px; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.dx-sync.ok { background: rgba(52, 211, 153, .18); color: var(--ok); }
+.dx-sync.warn { background: rgba(248, 113, 113, .18); color: var(--bad); }
+.dx-sync.ai { background: rgba(244, 114, 182, .18); color: #f9a8d4; }
+
+.nhi-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.nhi-table th {
+  text-align: left; color: var(--muted); font-weight: 600; font-size: 11.5px;
+  padding: 5px 7px; border-bottom: 1px solid var(--line);
+}
+.nhi-table td { padding: 6px 7px; border-bottom: 1px solid #12303c; vertical-align: middle; }
+.nhi-table tr.off { opacity: .42; }
+.nhi-table input[type="checkbox"] { accent-color: var(--joy-pink); width: 15px; height: 15px; cursor: pointer; }
+.nhi-table .num { text-align: right; font-family: Consolas, monospace; white-space: nowrap; }
+.cat-tag {
+  font-size: 11px; padding: 1px 6px; border-radius: 5px;
+  background: #133644; color: #9ee6d9; white-space: nowrap;
+}
+.it-name { color: #e2f2f5; }
+.it-loinc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.it-loinc code { color: var(--teal); }
+
+.points-summary {
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  padding-top: 6px; flex-wrap: wrap;
+}
+.pt-box {
+  background: #0c2631; border: 1px solid var(--line); border-radius: 9px;
+  padding: 6px 12px; display: flex; flex-direction: column; align-items: flex-end; min-width: 125px;
+}
+.pt-box small { font-size: 11px; color: var(--muted); }
+.pt-box b { font: 700 18px Consolas, monospace; color: #fff; }
+.pt-box em { font-style: normal; font-size: 12px; color: var(--muted); }
+.pt-box.highlight {
+  border-color: var(--joy-pink); background: rgba(244, 114, 182, .12);
+}
+.pt-box.highlight b { color: #f9a8d4; font-size: 20px; }
+.pt-op { font-weight: 700; color: var(--muted); font-size: 16px; }
+
+.audit-box {
+  background: #071920; border: 1px dashed #255263; border-radius: 11px;
+  padding: 9px 12px; display: flex; flex-direction: column; gap: 5px;
+}
+.audit-title { font-size: 12px; font-weight: 700; color: #f9a8d4; margin-bottom: 2px; }
+.audit-item { display: flex; gap: 6px; font-size: 12px; line-height: 1.45; color: #c7e2e7; }
+.audit-item.warn { color: var(--warn); }
+
+.claim-flow { margin-bottom: 2px; }
+.claim-steps { margin-bottom: 2px; }
+.claim-panes {
+  flex: 1; min-height: 220px;
+  display: grid; grid-template-rows: 1.25fr 0.9fr; gap: 10px;
+}
+.pane-h { display: flex; justify-content: space-between; align-items: center; }
+.pane-sub { font-size: 10.5px; color: var(--teal); }
+.log-empty { color: var(--muted); font-style: italic; padding: 8px 0; }
+
+.claim-footer { margin-top: auto; }
+.joy-submit-btn {
+  width: 100%; padding: 12px 16px; font-size: 15px; font-weight: 800;
+  color: #fff; border-radius: 12px;
+  background: linear-gradient(135deg, #ec4899, #db2777 55%, #0d9488);
+  box-shadow: 0 8px 24px rgba(236, 72, 153, .35);
+  transition: .2s;
+}
+.joy-submit-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+.receipt-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 12px;
+  background: rgba(52, 211, 153, .12); border: 1px solid var(--ok);
+}
+.receipt-av {
+  width: 44px; height: 44px; border-radius: 50%; object-fit: cover; object-position: 50% 18%;
+  border: 2px solid var(--ok); flex: none;
+}
+.receipt-body { flex: 1; min-width: 0; }
+.receipt-title { font-weight: 700; color: var(--ok); font-size: 13.5px; }
+.receipt-title code { color: #fff; background: #064e3b; padding: 2px 6px; border-radius: 5px; }
+.receipt-sub { font-size: 12px; color: #bfe8dc; margin-top: 2px; }
+
 @media (max-width: 900px) {
   .stages li { padding: 6px 8px; font-size: 12px; }
   .brand { display: none; }
   .split { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: repeat(3, 1fr); }
+  .claim-desk { grid-template-columns: 1fr; }
+  .case-meta-bar { grid-template-columns: repeat(2, 1fr); }
 }

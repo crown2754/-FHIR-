@@ -44,7 +44,23 @@ const ICD = {
   'Z79.84': 'Long term (current) use of oral hypoglycemic drugs',
 };
 const PATIENT = { name: '衛斯理 先生', gender: 'male', birthDate: '1988-03-14', id: 'A12****789' };
-const DOCTOR = { name: '原振俠 醫師', dept: '新陳代謝科', org: '中原智慧醫院' };
+const DOCTOR = { name: '原振俠 醫師', dept: '新陳代謝科', org: '中原智慧醫院', orgId: '1132010011' };
+const CLERK = { name: '喬伊小姐', role: '醫事行政室 · 健保申報專員', staffId: 'JOY-0857', avatar: 'joy.png' };
+
+const NHI_ITEMS_DEF = [
+  { code: '00110C', category: '診察費', name: '門診診察費（醫院門診）', points: 358, qty: 1, loinc: null, required: true, checked: true },
+  { code: '09005C', category: '檢驗費', name: '血液及體液葡萄糖檢驗（附居家 SMBG 佐證）', points: 50, qty: 1, loinc: '1558-6 / 1521-4', required: false, checked: true },
+  { code: '09006C', category: '檢驗費', name: '糖化血色素 (HbA1c) 檢驗', points: 200, qty: 1, loinc: '4548-4', required: false, checked: true },
+  { code: 'P1409C', category: '共照網', name: '糖尿病醫療給付改善方案（年度追蹤管理費）', points: 400, qty: 1, loinc: 'FHIR Bundle', required: false, checked: true },
+  { code: 'BC22543100', category: '藥品費', name: 'Metformin HCl 500mg 口服降血糖錠（28天份 / BID）', points: 2, qty: 56, loinc: null, required: false, checked: true },
+];
+
+const CLAIM_STEPS_DEF = [
+  { key: 'sam', icon: '🪪', title: '醫事機構卡 (SAM) 與專員憑證簽章', desc: '讀取中原智慧醫院安全模組卡與喬伊小姐行政簽章' },
+  { key: 'audit', icon: '🔍', title: 'AI 健保申報邏輯預檢（防核刪）', desc: '檢核 ICD-10-CM 診斷碼、健保醫令代碼與 LOINC 生理數值勾稽' },
+  { key: 'vpn', icon: '📡', title: '上傳健保資訊網服務系統 (NHI VPN)', desc: 'POST https://vpn.nhi.gov.tw/fhir/r4/Claim（TLS 1.3 專線）' },
+  { key: 'receipt', icon: '🏛️', title: '健保署核發電子收件回執', desc: 'ClaimResponse status=active · outcome=complete（200 OK）' },
+];
 
 function interp(r) {
   if (r.value < 70) return 'L';
@@ -404,11 +420,31 @@ createApp({
 
     const transfer = reactive({ started: false, running: false, steps: [], logs: [], sent: 0, total: 0, preview: [], previewShown: 0 });
     const doctor = reactive({ notified: false, opened: false, tab: 'overview', bundle: null, records: [], hba1c: null, suggestion: null, aiDecision: null, replied: false, showNotif: false });
+    const claimLogBox = ref(null);
+    const claim = reactive({
+      seqNo: 'IC01',
+      caseType: '09（西醫慢性病）',
+      copay: 80,
+      dxList: [
+        { code: 'E11.9', zh: '第二型糖尿病', display: ICD['E11.9'], role: '主診斷', isAi: false, required: true, checked: true },
+        { code: 'E11.65', zh: '第二型糖尿病伴有高血糖', display: ICD['E11.65'], role: '次診斷（AI 建議）', isAi: true, required: false, checked: true },
+        { code: 'Z79.84', zh: '長期使用口服降血糖藥（Metformin）', display: ICD['Z79.84'], role: '次診斷', isAi: false, required: false, checked: true },
+      ],
+      items: NHI_ITEMS_DEF.map((it) => ({ ...it })),
+      started: false,
+      running: false,
+      done: false,
+      receiptNo: '',
+      submittedAt: '',
+      steps: CLAIM_STEPS_DEF.map((s) => ({ ...s, status: 'pending' })),
+      logs: [],
+    });
 
     const sortedRecords = computed(() => [...records.value].sort((a, b) => b.time - a.time));
 
     const scrollChat = () => nextTick(() => { if (chatBody.value) chatBody.value.scrollTop = chatBody.value.scrollHeight; });
     const scrollLog = () => nextTick(() => { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight; });
+    const scrollClaimLog = () => nextTick(() => { if (claimLogBox.value) claimLogBox.value.scrollTop = claimLogBox.value.scrollHeight; });
 
     function push(msg) {
       messages.value.push({ id: uuid(), time: fmtTime(new Date()), ...msg });
@@ -448,6 +484,12 @@ createApp({
     const goPage = (n) => {
       if (n === 2 && !transfer.started) return;
       if (n === 3 && !doctor.notified) return;
+      if (n === 4) {
+        const aiDx = claim.dxList.find((d) => d.code === 'E11.65');
+        if (aiDx && doctor.aiDecision) {
+          aiDx.checked = doctor.aiDecision === 'accepted';
+        }
+      }
       page.value = n;
       if (n === 3 && !doctor.opened) {
         doctor.showNotif = false;
@@ -711,6 +753,8 @@ createApp({
       doctor.aiDecision = accept ? 'accepted' : 'rejected';
       const c = doctor.bundle.entry.find((e) => e.resource.resourceType === 'Condition' && e.resource.verificationStatus.coding[0].code === 'provisional');
       if (c) c.resource.verificationStatus.coding[0].code = accept ? 'confirmed' : 'refuted';
+      const aiDx = claim.dxList.find((d) => d.code === 'E11.65');
+      if (aiDx) aiDx.checked = accept;
     }
 
     function doctorReply() {
@@ -724,6 +768,191 @@ createApp({
       setTimeout(() => goPage(1), 1200);
     }
 
+    /* ----- 第 4 階段：喬伊小姐・健保署申報 ----- */
+    const claimSourceRecords = computed(() => (doctor.records.length ? doctor.records : sortedRecords.value.slice(0, 50)));
+    const claimStats = computed(() => calcStats(claimSourceRecords.value));
+    const claimSuggestion = computed(() => doctor.suggestion || suggestIcd(claimStats.value));
+    const claimTotalPoints = computed(() =>
+      claim.items.filter((it) => it.checked).reduce((sum, it) => sum + it.points * it.qty, 0)
+    );
+    const claimNetPoints = computed(() => Math.max(0, claimTotalPoints.value - claim.copay));
+
+    const claimAuditHints = computed(() => {
+      const hints = [];
+      const hasE1165 = claim.dxList.find((d) => d.code === 'E11.65')?.checked;
+      const hasZ7984 = claim.dxList.find((d) => d.code === 'Z79.84')?.checked;
+      const hasMetformin = claim.items.find((it) => it.code === 'BC22543100')?.checked;
+      const hasGlucoseLab = claim.items.find((it) => it.code === '09005C')?.checked;
+      const hasA1cLab = claim.items.find((it) => it.code === '09006C')?.checked;
+      const st = claimStats.value;
+
+      if (hasE1165 && st) {
+        hints.push({
+          level: 'ok',
+          text: `次診斷 E11.65（伴有高血糖）已附帶 FHIR 居家血糖超標佐證（${st.n} 筆中 ${st.high} 筆超標，餐後平均 ${st.pAvg} mg/dL），符合健保精準審查標準。`,
+        });
+      } else if (!hasE1165 && st && st.high / st.n >= 0.25) {
+        hints.push({
+          level: 'warn',
+          text: `AI 提醒：病人近 ${st.n} 筆血糖有 ${st.high} 筆超標（${Math.round((st.high / st.n) * 100)}%），建議勾選 E11.65 以完整反映疾病複雜度。`,
+        });
+      }
+      if (hasMetformin && !hasZ7984) {
+        hints.push({
+          level: 'warn',
+          text: '申報口服降血糖藥 (BC22543100 Metformin) 建議一併勾選 Z79.84（長期使用口服降血糖藥），提升編碼完整度。',
+        });
+      }
+      if ((hasGlucoseLab || hasA1cLab) && st) {
+        hints.push({
+          level: 'ok',
+          text: `檢驗醫令已自動綁定 LOINC 標準碼（1558-6 / 1521-4 / 4548-4）與 UCUM 單位，免除人工補件。`,
+        });
+      }
+      return hints;
+    });
+
+    const fhirClaimJson = computed(() => {
+      const st = claimStats.value;
+      const activeDx = claim.dxList.filter((d) => d.checked);
+      const activeItems = claim.items.filter((it) => it.checked);
+      const a1cVal = doctor.hba1c?.value ?? hba1c.value?.value ?? Number(st?.gmi || 6.6);
+      const claimObj = {
+        resourceType: 'Claim',
+        id: 'nhi-claim-' + fmtDate(new Date()).replace(/-/g, '') + '-001',
+        meta: {
+          profile: ['https://twcore.mohw.gov.tw/ig/twcore/StructureDefinition/Claim-twcore'],
+        },
+        status: 'active',
+        type: {
+          coding: [{ system: 'http://terminology.hl7.org/CodeSystem/claim-type', code: 'institutional', display: 'Institutional' }],
+        },
+        use: 'claim',
+        patient: {
+          reference: `Patient/${PATIENT.id}`,
+          display: PATIENT.name,
+        },
+        created: toISO(new Date()),
+        enterer: {
+          identifier: { system: 'https://www.nhi.gov.tw/staff', value: CLERK.staffId },
+          display: `${CLERK.name}（${CLERK.role}）`,
+        },
+        provider: {
+          identifier: { system: 'https://www.nhi.gov.tw/hosb', value: DOCTOR.orgId },
+          display: `${DOCTOR.org}（主治：${DOCTOR.name}）`,
+        },
+        priority: { coding: [{ code: 'normal' }] },
+        supportingInfo: [
+          {
+            sequence: 1,
+            category: { coding: [{ code: 'nhi-case-type', display: '健保案件分類' }] },
+            valueString: `${claim.caseType} · 就醫序號 ${claim.seqNo}`,
+          },
+          {
+            sequence: 2,
+            category: { coding: [{ code: 'smbg-summary', display: 'FHIR 居家血糖佐證摘要' }] },
+            valueString: st
+              ? `近 ${st.n} 筆 SMBG（空腹平均 ${st.fAvg} / 餐後平均 ${st.pAvg} mg/dL，超標 ${st.high} 筆）· HbA1c/GMI ${a1cVal}%`
+              : '無血糖統計',
+          },
+        ],
+        diagnosis: activeDx.map((d, idx) => ({
+          sequence: idx + 1,
+          diagnosisCodeableConcept: {
+            coding: [{ system: 'http://hl7.org/fhir/sid/icd-10-cm', code: d.code, display: d.display }],
+            text: d.zh,
+          },
+          type: [{ coding: [{ code: idx === 0 ? 'principal' : 'secondary' }] }],
+        })),
+        item: activeItems.map((it, idx) => ({
+          sequence: idx + 1,
+          productOrService: {
+            coding: [{ system: 'https://twcore.mohw.gov.tw/ig/twcore/CodeSystem/nhi-order-code', code: it.code, display: it.name }],
+          },
+          quantity: { value: it.qty },
+          unitPrice: { value: it.points, currency: 'TWD-NHI-PT' },
+          net: { value: it.points * it.qty, currency: 'TWD-NHI-PT' },
+        })),
+        total: {
+          value: claimTotalPoints.value,
+          currency: 'TWD-NHI-PT',
+        },
+      };
+      return JSON.stringify(claimObj, null, 2);
+    });
+
+    function claimLog(text, kind = '') {
+      claim.logs.push({ t: fmtTime(new Date()) + ':' + pad(new Date().getSeconds()), text, kind });
+      scrollClaimLog();
+    }
+
+    async function runClaimStep(key, fn) {
+      const s = claim.steps.find((x) => x.key === key);
+      if (!s) return;
+      s.status = 'active';
+      await fn();
+      s.status = 'done';
+      await sleep(280);
+    }
+
+    async function submitClaim() {
+      if (claim.running) return;
+      claim.started = true;
+      claim.running = true;
+      claim.done = false;
+      claim.logs = [];
+      claim.steps = CLAIM_STEPS_DEF.map((s) => ({ ...s, status: 'pending' }));
+
+      const activeDx = claim.dxList.filter((d) => d.checked);
+      const activeItems = claim.items.filter((it) => it.checked);
+      const st = claimStats.value;
+
+      await runClaimStep('sam', async () => {
+        claimLog(`讀取醫事機構卡：${DOCTOR.org} (${DOCTOR.orgId})`, 'code');
+        await sleep(500);
+        claimLog(`驗證申報人員憑證：${CLERK.name} (${CLERK.staffId}) · 簽章成功`, 'ok');
+      });
+
+      await runClaimStep('audit', async () => {
+        claimLog(`檢核 ICD-10-CM 診斷碼共 ${activeDx.length} 項：${activeDx.map((d) => d.code).join(', ')}`, 'code');
+        await sleep(550);
+        if (activeDx.some((d) => d.code === 'E11.65') && st) {
+          claimLog(`✔ 次診斷 E11.65 已檢附 ${st.n} 筆 FHIR Observation 居家血糖佐證（高血糖 ${st.high} 筆）`, 'ok');
+        }
+        claimLog(`✔ 健保醫令 ${activeItems.length} 項 · 總點數 ${claimTotalPoints.value} 點（部分負擔 ${claim.copay} 元）通過勾稽`, 'ok');
+      });
+
+      await runClaimStep('vpn', async () => {
+        claimLog('連線健保資訊網服務系統 (NHI VPN) · TLS 1.3 加密通道…');
+        await sleep(600);
+        claimLog('POST https://vpn.nhi.gov.tw/fhir/r4/Claim  Content-Type: application/fhir+json', 'code');
+        await sleep(650);
+        claimLog(`已傳送 TW Core FHIR Claim（${(fhirClaimJson.value.length / 1024).toFixed(1)} KB）`, 'ok');
+      });
+
+      await runClaimStep('receipt', async () => {
+        await sleep(500);
+        const rNo = `NHI-${fmtDate(new Date()).replace(/-/g, '')}-${pad(Math.floor(1000 + Math.random() * 9000))}`;
+        claim.receiptNo = rNo;
+        claim.submittedAt = `${fmtDate(new Date())} ${fmtTime(new Date())}:${pad(new Date().getSeconds())}`;
+        claimLog(`HTTP 200 OK · 健保署收件回執單號：${rNo}`, 'ok');
+        claimLog(`喬伊小姐已完成「${PATIENT.name}」門診健保申報作業！`, 'ok');
+      });
+
+      claim.running = false;
+      claim.done = true;
+    }
+
+    function resetClaim() {
+      claim.started = false;
+      claim.running = false;
+      claim.done = false;
+      claim.receiptNo = '';
+      claim.submittedAt = '';
+      claim.logs = [];
+      claim.steps = CLAIM_STEPS_DEF.map((s) => ({ ...s, status: 'pending' }));
+    }
+
     function reset() {
       initSqlite();
       if (!dbState.ready) records.value = seedRecords();
@@ -734,15 +963,19 @@ createApp({
       messages.value = [];
       Object.assign(transfer, { started: false, running: false, steps: [], logs: [], sent: 0, total: 0, preview: [], previewShown: 0 });
       Object.assign(doctor, { notified: false, opened: false, tab: 'overview', bundle: null, records: [], hba1c: null, suggestion: null, aiDecision: null, replied: false, showNotif: false });
+      resetClaim();
+      claim.dxList.forEach((d) => { d.checked = true; });
+      claim.items.forEach((it) => { it.checked = true; });
       push({ from: 'agent', type: 'text', text: `${PATIENT.name} 午安！我是你的專屬水豚健康管家「卡皮君」🦫👓\n\n小本本與 SQLite 資料庫已經重新準備好囉 📝 在下方選好「時段」、「狀態」和「血糖值」按送出就可以開始記錄！` });
     }
 
     return {
-      PERIODS, PATIENT, DOCTOR, ICD,
-      records, messages, input, typing, chatBody, logBox, fileInput, clock, page, goPage,
+      PERIODS, PATIENT, DOCTOR, CLERK, ICD,
+      records, messages, input, typing, chatBody, logBox, claimLogBox, fileInput, clock, page, goPage,
       dbState, runCustomSql, downloadSqliteDb, downloadCsv, handleFileImport,
       SLOTS, STATES, composer, composerValid, composerInterp, bump, submitComposer,
       transfer, doctor, dStats, chart, doctorTable, bundleJson,
+      claim, claimStats, claimSuggestion, claimTotalPoints, claimNetPoints, claimAuditHints, fhirClaimJson, submitClaim, resetClaim,
       send, confirmConsent, cancelConsent, decideAi, doctorReply, reset,
       fmtDT, fmtDate, fmtTime, interp,
     };
@@ -758,6 +991,7 @@ createApp({
       <li :class="{ on: true, cur: page === 1 }" @click="goPage(1)"><span>1</span>病人對 AI 記錄血糖</li>
       <li :class="{ on: transfer.started, cur: page === 2 }" @click="goPage(2)"><span>2</span>FHIR 標準化傳輸</li>
       <li :class="{ on: doctor.notified, cur: page === 3 }" @click="goPage(3)"><span>3</span>醫師行動裝置接收</li>
+      <li :class="{ on: true, cur: page === 4 }" class="joy-stage" @click="goPage(4)"><span>4</span>喬伊小姐健保申報</li>
     </ol>
     <div class="top-actions">
       <button class="ghost db-btn" @click="dbState.showModal = true; runCustomSql()">
@@ -1048,7 +1282,10 @@ createApp({
               <b>🦫 卡皮君 AI 臨床摘要（供原振俠醫師參考）</b>
               <p>近 {{ dStats.n }} 筆中空腹 {{ dStats.fN }} 筆、餐後 {{ dStats.pN }} 筆；餐後 &gt;180 mg/dL 共 {{ dStats.pHigh }} 次，最高 {{ dStats.max }} mg/dL{{ dStats.low ? '，有 ' + dStats.low + ' 次低血糖' : '，無低血糖紀錄' }}。
                 餐後紀錄比例偏低，建議請病人增加餐後 2 小時監測。</p>
-              <button class="primary" :disabled="doctor.replied" @click="doctorReply">{{ doctor.replied ? '✅ 已回覆病人' : '💬 回覆病人（傳回病人手機）' }}</button>
+              <div class="summary-actions">
+                <button class="primary" :disabled="doctor.replied" @click="doctorReply">{{ doctor.replied ? '✅ 已回覆病人' : '💬 回覆病人（傳回病人手機）' }}</button>
+                <button class="joy-btn" @click="goPage(4)">📋 轉交喬伊小姐申報健保 →</button>
+              </div>
             </div>
           </div>
 
@@ -1068,6 +1305,190 @@ createApp({
 
           <div class="emr-body" v-else>
             <pre class="json light">{{ bundleJson }}</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 第 4 階段：喬伊小姐・行政人員申報健保局 ===== -->
+    <section class="col col-claim" v-show="page === 4">
+      <div class="col-title">
+        <img class="title-av joy-av" :src="CLERK.avatar" :alt="CLERK.name" />
+        行政人員健保申報工作台 · {{ CLERK.name }}（{{ CLERK.role }}）
+        <div class="back">
+          <button v-if="doctor.notified" class="ghost sm" @click="goPage(3)" style="margin-right:6px">← 回醫師平板</button>
+          <button class="ghost sm" @click="goPage(1)">← 回病人手機</button>
+        </div>
+      </div>
+
+      <div class="claim-desk">
+        <!-- 左欄：喬伊小姐資訊、ICD-10-CM 診斷碼審核、健保醫令點數試算 -->
+        <div class="claim-left">
+          <div class="joy-banner">
+            <img class="joy-portrait" :src="CLERK.avatar" :alt="CLERK.name" />
+            <div class="joy-info">
+              <div class="joy-title-row">
+                <span class="joy-name">{{ CLERK.name }}</span>
+                <span class="joy-badge">🏥 {{ DOCTOR.org }} · {{ CLERK.role }}</span>
+                <span class="joy-id">員工編號 {{ CLERK.staffId }}</span>
+              </div>
+              <div class="joy-quote">
+                「歡迎來到健保申報中心！我已接收 <b>{{ DOCTOR.name }}</b> 確認的門診紀錄與 <b>卡皮君</b> 整理的 FHIR 血糖佐證，請確認下方 ICD-10-CM 與健保醫令點數後，即可一鍵上傳中央健康保險署 ✨」
+              </div>
+            </div>
+          </div>
+
+          <div class="case-meta-bar">
+            <div><small>申報對象</small><b>{{ PATIENT.name }}（{{ PATIENT.id }}）</b></div>
+            <div><small>就醫序號 / 案件分類</small><b>{{ claim.seqNo }} · {{ claim.caseType }}</b></div>
+            <div><small>主治醫師</small><b>{{ DOCTOR.name }}（{{ DOCTOR.dept }}）</b></div>
+            <div><small>FHIR 血糖佐證</small><b>{{ claimStats ? claimStats.n : 0 }} 筆（超標 {{ claimStats ? claimStats.high : 0 }} 筆）</b></div>
+          </div>
+
+          <!-- ICD-10-CM 診斷碼審核 -->
+          <div class="claim-card">
+            <div class="claim-card-h">
+              <span>🩺 1. 門診 ICD-10-CM 診斷碼編碼審核</span>
+              <small>勾選納入本次健保申報（diagnosis[]）</small>
+            </div>
+            <div class="claim-dx-list">
+              <label v-for="d in claim.dxList" :key="d.code" class="claim-dx-item" :class="{ off: !d.checked, ai: d.isAi }">
+                <input type="checkbox" v-model="d.checked" :disabled="d.required || claim.running" />
+                <span class="dx-role" :class="{ ai: d.isAi }">{{ d.role }}</span>
+                <code class="dx-code">{{ d.code }}</code>
+                <div class="dx-text">
+                  <b>{{ d.zh }}</b>
+                  <small>{{ d.display }}</small>
+                </div>
+                <span v-if="d.isAi && doctor.aiDecision === 'accepted'" class="dx-sync ok">醫師已採納</span>
+                <span v-else-if="d.isAi && doctor.aiDecision === 'rejected'" class="dx-sync warn">醫師未採納</span>
+                <span v-else-if="d.isAi" class="dx-sync ai">附 SMBG 佐證</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 健保醫令與點數試算 -->
+          <div class="claim-card">
+            <div class="claim-card-h">
+              <span>💊 2. 健保支付標準醫令與點數核算</span>
+              <small>勾選申報醫令項目（item[]）</small>
+            </div>
+            <table class="nhi-table">
+              <thead>
+                <tr>
+                  <th style="width:34px">申報</th>
+                  <th>健保醫令碼</th>
+                  <th>類別</th>
+                  <th>醫令名稱 ＆ LOINC 勾稽</th>
+                  <th class="num">單價</th>
+                  <th class="num">數量</th>
+                  <th class="num">點數小計</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="it in claim.items" :key="it.code" :class="{ off: !it.checked }">
+                  <td><input type="checkbox" v-model="it.checked" :disabled="it.required || claim.running" /></td>
+                  <td><code>{{ it.code }}</code></td>
+                  <td><span class="cat-tag">{{ it.category }}</span></td>
+                  <td>
+                    <div class="it-name">{{ it.name }}</div>
+                    <div v-if="it.loinc" class="it-loinc">🔗 已綁定 LOINC: <code>{{ it.loinc }}</code></div>
+                  </td>
+                  <td class="num">{{ it.points }}</td>
+                  <td class="num">×{{ it.qty }}</td>
+                  <td class="num"><b>{{ it.points * it.qty }}</b> 點</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="points-summary">
+              <div class="pt-box">
+                <small>醫療費用總點數</small>
+                <b>{{ claimTotalPoints.toLocaleString() }} <em>點</em></b>
+              </div>
+              <div class="pt-op">−</div>
+              <div class="pt-box">
+                <small>門診基本部分負擔</small>
+                <b>{{ claim.copay }} <em>元</em></b>
+              </div>
+              <div class="pt-op">＝</div>
+              <div class="pt-box highlight">
+                <small>向健保署申請點數</small>
+                <b>{{ claimNetPoints.toLocaleString() }} <em>點</em></b>
+              </div>
+            </div>
+          </div>
+
+          <!-- 喬伊小姐 AI 健保防核刪檢核提示 -->
+          <div class="audit-box">
+            <div class="audit-title">🛡️ 喬伊小姐 × AI 健保申報事前檢核（防核刪助理）</div>
+            <div v-for="(h, idx) in claimAuditHints" :key="idx" class="audit-item" :class="h.level">
+              <span>{{ h.level === 'ok' ? '✅' : '⚠️' }}</span>
+              <span>{{ h.text }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右欄：TW Core FHIR Claim 預覽 ＆ 健保署 VPN 上傳 -->
+        <div class="claim-right">
+          <div class="flow claim-flow" :class="{ running: claim.running, done: claim.done }">
+            <div class="node">👩‍⚕️<span>喬伊小姐工作站</span></div>
+            <div class="wire"><i v-for="n in 5" :key="n" :style="{ animationDelay: (n * 0.25) + 's' }"></i></div>
+            <div class="node">🪪<span>醫事卡 SAM 簽章</span></div>
+            <div class="wire"><i v-for="n in 5" :key="n" :style="{ animationDelay: (n * 0.25) + 's' }"></i></div>
+            <div class="node">🏛️<span>健保署 NHI VPN</span></div>
+          </div>
+
+          <ol class="steps claim-steps">
+            <li v-for="s in claim.steps" :key="s.key" :class="s.status">
+              <span class="ico">
+                <i v-if="s.status === 'active'" class="spinner"></i>
+                <b v-else-if="s.status === 'done'" class="check">✔</b>
+                <template v-else>{{ s.icon }}</template>
+              </span>
+              <div class="sbody">
+                <div class="st">{{ s.title }}
+                  <span class="stat" v-if="s.status === 'active'">處理中…</span>
+                  <span class="stat ok" v-else-if="s.status === 'done'">完成</span>
+                </div>
+                <div class="sd">{{ s.desc }}</div>
+              </div>
+            </li>
+          </ol>
+
+          <div class="claim-panes">
+            <div class="pane">
+              <div class="pane-h">
+                <span>TW Core FHIR Claim（即時預覽）</span>
+                <span class="pane-sub">隨左側勾選動態更新</span>
+              </div>
+              <pre class="json">{{ fhirClaimJson }}</pre>
+            </div>
+            <div class="pane">
+              <div class="pane-h">健保 VPN 傳輸與檢核紀錄</div>
+              <div class="logs" ref="claimLogBox">
+                <div v-if="!claim.logs.length" class="log-empty">
+                  點擊下方「🚀 喬伊小姐一鍵上傳健保署申報」開始進行 SAM 卡簽章與 VPN 申報傳輸…
+                </div>
+                <div v-for="(l, i) in claim.logs" :key="i" :class="l.kind"><span>{{ l.t }}</span> {{ l.text }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="claim-footer">
+            <div v-if="claim.done" class="receipt-banner">
+              <img class="receipt-av" :src="CLERK.avatar" :alt="CLERK.name" />
+              <div class="receipt-body">
+                <div class="receipt-title">🎉 健保署已收件核備！收件回執單號：<code>{{ claim.receiptNo }}</code></div>
+                <div class="receipt-sub">
+                  申報專員：{{ CLERK.name }} · 申請點數：<b>{{ claimNetPoints.toLocaleString() }} 點</b> · 時間：{{ claim.submittedAt }}
+                </div>
+              </div>
+              <button class="ghost sm" @click="resetClaim">↺ 重新演練申報</button>
+            </div>
+            <button v-else class="joy-submit-btn" :disabled="claim.running" @click="submitClaim">
+              {{ claim.running ? '📡 正在透過健保 VPN 加密傳送申報資料…' : '🚀 喬伊小姐一鍵上傳健保署申報（FHIR Claim · 申請 ' + claimNetPoints.toLocaleString() + ' 點）' }}
+            </button>
           </div>
         </div>
       </div>

@@ -4,8 +4,9 @@
 
 1. **病人手機**：對專屬水豚管家「卡皮君」記錄血糖（寫入瀏覽器內嵌 SQLite `data/glucose.db`）、預估糖化血色素
 2. **傳輸過程**：從 SQLite 擷取紀錄 → 對應 ICD-10-CM → 封裝 FHIR Bundle → 授權 → 上傳 → 驗證 → 通知原振俠醫師
-3. **醫師平板**：接收病人的診斷、血糖趨勢與原始 FHIR 資料
-4. **SQLite / CSV 管理**：內建互動式 SQL 查詢視窗，支援匯出／匯入 `.db` (SQLite 3) 與 `.csv` 檔案（預設假資料位於 `data/glucose.db` 與 `data/glucose_records.csv`）
+3. **醫師平板**：接收病人的診斷、血糖趨勢與原始 FHIR 資料，並可轉交行政人員申報健保
+4. **喬伊小姐健保申報（第 4 階段）**：行政專員「喬伊小姐」(`joy.png`) 審核 ICD-10-CM 診斷碼與健保支付標準醫令點數，即時轉換為 **TW Core FHIR Claim** 格式，並透過健保署 VPN 模擬 SAM 卡簽章上傳與核發電子收件回執（頂部導覽列可隨時切換展示）
+5. **SQLite / CSV 管理**：內建互動式 SQL 查詢視窗，支援匯出／匯入 `.db` (SQLite 3) 與 `.csv` 檔案（預設假資料位於 `data/glucose.db` 與 `data/glucose_records.csv`）
 
 ## 執行
 
